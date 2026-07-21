@@ -1,3 +1,4 @@
+
 import os
 import time
 import random
@@ -19,7 +20,6 @@ def send_telegram(text):
         print(f"Ошибка отправки: {e}")
 
 def main():
-    # Имитируем реальный десктопный браузер
     scraper = cloudscraper.create_scraper(
         browser={
             'browser': 'chrome',
@@ -28,7 +28,6 @@ def main():
         }
     )
     
-    # Случайная пауза перед запросом
     time.sleep(random.uniform(3, 7))
     
     headers = {
@@ -59,4 +58,4 @@ def main():
     print(f"Всего товаров: {found}")
 
 if __name__ == "__main__":
-   / main()
+    main()
