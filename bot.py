@@ -1,10 +1,11 @@
-import os
+           import os
 import requests
 from bs4 import BeautifulSoup
 
 TOKEN = os.environ.get("TG_TOKEN")
 CHANNEL_ID = os.environ.get("TG_CHANNEL")
-TARGET_URL = "https://www.avito.ru/user/2079f9860fb0d9647c5edd3175df709c/profile?view=dg&src=sharing"
+# Используем мобильную версию профиля
+URL = "https://m.avito.ru/user/2079f9860fb0d9647c5edd3175df709c/profile"
 
 def send_telegram(text):
     if not TOKEN or not CHANNEL_ID:
@@ -16,21 +17,21 @@ def send_telegram(text):
         print(f"Ошибка отправки: {e}")
 
 def main():
-    # Используем публичный API-прокси для обхода блокировок дата-центров
-    api_url = f"https://api.allorigins.win/get?url={requests.utils.quote(TARGET_URL)}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ru-RU,ru;q=0.9"
+    }
     
     try:
-        response = requests.get(api_url, timeout=30)
-        print(f"Статус ответа прокси: {response.status_code}")
+        response = requests.get(URL, headers=headers, timeout=15)
+        print(f"Статус ответа: {response.status_code}")
         
-        data = response.json()
-        html_content = data.get("contents", "")
-        
-        if not html_content:
-            print("Не удалось получить содержимое страницы.")
+        if response.status_code != 200:
+            print("Блокировка сохраняется.")
             return
 
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(response.text, 'html.parser')
         items = soup.find_all('div', attrs={'data-marker': True})
         
         found = 0
@@ -44,7 +45,7 @@ def main():
         print(f"Всего товаров: {found}")
         
     except Exception as e:
-        print(f"Ошибка при запросе: {e}")
+        print(f"Ошибка запроса: {e}")
 
 if __name__ == "__main__":
-    main()
+    main() 
