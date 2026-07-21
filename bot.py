@@ -41,5 +41,5 @@ def main():
 
     print(f"Всего товаров: {found}")
 
-if __name__== "__main__":
+if __name__ == "__main__":
     main()
