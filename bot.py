@@ -1,11 +1,10 @@
-           import os
+import os
 import requests
-from bs4 import BeautifulSoup
 
 TOKEN = os.environ.get("TG_TOKEN")
 CHANNEL_ID = os.environ.get("TG_CHANNEL")
-# Используем мобильную версию профиля
-URL = "https://m.avito.ru/user/2079f9860fb0d9647c5edd3175df709c/profile"
+# ID пользователя из ссылки профиля
+USER_ID = "2079f9860fb0d9647c5edd3175df709c"
 
 def send_telegram(text):
     if not TOKEN or not CHANNEL_ID:
@@ -17,35 +16,36 @@ def send_telegram(text):
         print(f"Ошибка отправки: {e}")
 
 def main():
+    # Используем мобильный API-метод Авито, который возвращает данные в JSON
+    api_url = f"https://m.avito.ru/api/1/items?filter[user]={USER_ID}"
+    
     headers = {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "ru-RU,ru;q=0.9"
+        "User-Agent": "Avito/198.0 (Android; 11; Scale/2.75)",
+        "Accept": "application/json",
+        "X-Requested-With": "XMLHttpRequest"
     }
     
     try:
-        response = requests.get(URL, headers=headers, timeout=15)
-        print(f"Статус ответа: {response.status_code}")
+        response = requests.get(api_url, headers=headers, timeout=15)
+        print(f"Статус ответа API: {response.status_code}")
         
         if response.status_code != 200:
-            print("Блокировка сохраняется.")
+            print("API заблокировало запрос.")
             return
 
-        soup = BeautifulSoup(response.text, 'html.parser')
-        items = soup.find_all('div', attrs={'data-marker': True})
+        data = response.json()
+        items = data.get("items", [])
         
-        found = 0
+        found = len(items)
+        print(f"Всего товаров через API: {found}")
+        
         for item in items:
-            marker = item.get('data-marker', '')
-            if 'item-' in marker:
-                found += 1
-                text = item.text.strip()
-                print(f"Найдено: {text[:50]}")
-
-        print(f"Всего товаров: {found}")
-        
+            title = item.get("title", "Без названия")
+            price = item.get("price", {}).get("value", "Цена не указана")
+            print(f"Товар: {title} — {price} руб.")
+            
     except Exception as e:
-        print(f"Ошибка запроса: {e}")
+        print(f"Ошибка при запросе к API: {e}")
 
 if __name__ == "__main__":
-    main() 
+    main()
