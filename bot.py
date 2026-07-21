@@ -1,5 +1,6 @@
 import os
 import time
+import random
 import cloudscraper
 from bs4 import BeautifulSoup
 import requests
@@ -18,13 +19,30 @@ def send_telegram(text):
         print(f"Ошибка отправки: {e}")
 
 def main():
-    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'android', 'desktop': False})
-    time.sleep(2)
-    resp = scraper.get(URL)
+    # Имитируем реальный десктопный браузер
+    scraper = cloudscraper.create_scraper(
+        browser={
+            'browser': 'chrome',
+            'platform': 'windows',
+            'desktop': True
+        }
+    )
+    
+    # Случайная пауза перед запросом
+    time.sleep(random.uniform(3, 7))
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Referer": "https://www.avito.ru/"
+    }
+    
+    resp = scraper.get(URL, headers=headers)
     print(f"Статус ответа: {resp.status_code}")
     
     if resp.status_code != 200:
-        print("Авито заблокировал запрос.")
+        print("Авито всё еще блокирует запрос (429).")
         return
 
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -37,9 +55,8 @@ def main():
             found += 1
             text = item.text.strip()
             print(f"Найдено: {text[:50]}")
-            # send_telegram(f"📢 Новое объявление:\n{text}")
 
     print(f"Всего товаров: {found}")
 
 if __name__ == "__main__":
-    main()
+   / main()
